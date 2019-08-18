@@ -19,7 +19,6 @@ class TestFormat(unittest.TestCase):
         )
 
         for expected, value in asserts:
-            print(expected, value)
             self.assertEqual(expected, value)
 
 

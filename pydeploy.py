@@ -26,9 +26,9 @@ Directories structure of deployment
 
 import os
 from plumbum.cmd import git
+from plumbum.commands import TEE
+
 from format import format as _
-
-
 
 
 class Config(object):
@@ -37,12 +37,10 @@ class Config(object):
         basename = os.path.basename(self.cwd)
         name = name if name else basename
 
-        production_name = name
-        staging_name = _('{name}-staging')
-        test_name = _('{name}-test')
-        
-        user = 'www-data'
-        group = 'www-data'
+        self.name = name
+
+        self.user = 'www-data'
+        self.group = 'www-data'
 
         prefix = '/var/www'
         logging_prefix = '/var/log'
@@ -58,7 +56,7 @@ class Config(object):
             supervisor_prefix = '/etc/supervisord.d'
             supervisor_config = _('{supervisor_prefix}/{name}.ini')
 
-        gitrev = git['rev-parse', '--short', 'HEAD']
+        gitrev = (git['rev-parse', '--short', 'HEAD'] & TEE)[1].strip()
         dest = _('{prefix}/{name}')
         logging_path = _('{logging_prefix}/{name}')
         media_path = _('{media_prefix}/{name}')
@@ -70,6 +68,51 @@ class Config(object):
         venv_gunicorn = _('{venv_path}/bin/gunicorn')
 
         local_settings_path = _('{local_settings_prefix}/{name}')
-        
-            
 
+        self.dest = dest
+        self.prefix = prefix
+        self.supervisor_prefix = supervisor_prefix
+        self.supervisor_config = supervisor_config
+        self.logging_path = logging_path
+        self.media_path = media_path
+        self.static_path = static_path
+        self.venv_path = venv_path
+        self.venv_python = venv_python
+        self.venv_gunicorn = venv_gunicorn
+        self.local_settings_path = local_settings_path
+
+
+def print_config(config):
+    print('name:', config.name)
+    print('user:', config.user)
+    print('group:', config.group)
+    print('prefix:', config.prefix)
+    print('logging_path:', config.logging_path)
+    print('media_path:', config.media_path)
+    print('static_path:', config.static_path)
+    print('ven_path:', config.venv_path)
+    print('local_settings_path:', config.local_settings_path)
+    print('supervisor_prefix:', config.supervisor_prefix)
+    print('supervisor_config:', config.supervisor_config)
+    print('dest:', config.dest)
+    print('venv_path:', config.venv_path)
+    print('venv_python:', config.venv_python)
+    print('venv_gunicorn:', config.venv_gunicorn)
+    print('local_settings_path', config.local_settings_path)
+
+
+def print_full_config():
+    def _wrap_title(title, config):
+        print(_('[{title}] info'))
+        print_config(config)
+        print()
+
+    production_config = Config(name='deployee')
+    staging_config = Config(name='deployee-staging')
+    test_config = Config(name='deployee-test')
+
+    _wrap_title('production', production_config)
+    _wrap_title('staging', staging_config)
+    _wrap_title('test', test_config)
+
+print_full_config()
