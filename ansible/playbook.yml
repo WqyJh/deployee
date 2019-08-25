@@ -1,0 +1,129 @@
+# Directories structure of deployment
+# /var
+# ├── lib
+# │   ├── local_settings
+# │   │   └── project
+# │   │       ├── production
+# │   │       ├── staging
+# │   │       └── test
+# │   └── venv
+# │   │   └── project
+# │   │       ├── production
+# │   │       ├── staging
+# │   │       └── test
+# ├── log
+# │   └── project
+# │       ├── production
+# │       ├── staging
+# │       └── test
+# ├── media
+# │   └── project
+# │       ├── production
+# │       ├── staging
+# │       └── test
+# ├── static
+# │   └── project
+# │       ├── production
+# │       ├── staging
+# │       └── test
+# └── www
+# │   └── project
+# │       ├── production
+# │       ├── staging
+# │       └── test
+
+---
+
+- name: "{{ project_name }} {{ stage }}"
+  hosts: web
+  remote_user: root
+  vars:
+    postfix: ansible_date_time.iso8601_basic_short # 20170727T220900
+    project_name: "{{ project_name }}"
+    owner: www-data
+    group: www-data
+    project_prefix: "/var/www/{{ project_name }}"
+    log_prefix: "/var/log/{{ project_name }}"
+    media_prefix: "/var/media/{{ project_name }}"
+    static_prefix: "/var/static/{{ project_name }}"
+    venv_prefix: "/var/lib/venv/{{ project_name }}"
+    local_settings_prefix: "/var/lib/local_settings/{{ project_name }}"
+    supervisor_conf: "{{ supervisor_prefix }}/{{ project_name }}.{{ supervisor_ext }}"
+    dest: "{{ project_prefix }}/{{ stage }}"
+    log_path: "{{ log_prefix }}/{{ stage }}"
+    media_path: "{{ media_prefix }}/{{ stage }}"
+    static_path: "{{ static_prefix }}/{{ stage }}"
+    venv_path: "{{ venv_prefix }}/{{ stage }}"
+    local_settings_path: "{{ local_settings_prefix }}/{{ stage }}"
+    venv_gunicorn: "{{ venv_path }}/bin/gunicorn"
+  vars_files:
+    - secrets.yml
+  tasks:
+    - block:
+        - name: "Create dirs"
+          file:
+            path: "{{ item }}"
+            state: directory
+            recurse: yes
+          loop:
+            - "{{ dest }}"
+            - "{{ log_path }}"
+            - "{{ media_path }}"
+            - "{{ static_path }}"
+        - name: "Copy code"
+          synchronize:
+            src: "{{ project_src }}/"
+            dest: "{{ dest }}"
+            archive: true
+            delete: true
+            rsync_opts:
+              - "--exclude=.git/"
+        - name: "Retrive local settings"
+          synchronize:
+            src: "{{ local_settings_path }}/"
+            dest: "{{ dest }}"
+            archive: true
+            delete: false
+        - name: "Install python dependencies"
+          pip:
+            virtualenv: "{{ venv_path }}"
+            virtualenv_python: python3
+            requirements: "{{ dest }}/requirements.txt"
+        - name: "Run migrations"
+          django_manage:
+            command: migrate
+            app_path: "{{ dest }}"
+            virtualenv: "{{ venv_path }}"
+        - name: "Collect static files"
+          django_manage:
+            command: collectstatic
+            app_path: "{{ dest }}"
+            virtualenv: "{{ venv_path }}"
+        - name: "Change files' attributes"
+          file:
+            path: "{{ item }}"
+            owner: "{{ owner }}"
+            group: "{{ group }}"
+            recurse: yes
+          loop:
+            - "{{ dest }}"
+            - "{{ log_path }}"
+            - "{{ media_path }}"
+            - "{{ static_path }}"
+        - name: "Generate supervisor config"
+          template:
+            src: template/supervisor.conf.j2
+            dest: "{{ supervisor_conf }}"
+          notify: "Run django application"
+      rescue:
+        - name: "Cleanup on failed"
+          file:
+            state: absent
+            path: "{{ venv_path }}/"
+
+
+  handlers:
+    - name: "Run django application"
+      supervisorctl:
+        name: "{{ project_name }}"
+        state: restarted
