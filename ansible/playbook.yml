@@ -56,18 +56,18 @@
   remote_user: root
   vars:
     # postfix: "{{ ansible_date_time.iso8601_basic_short }}" # 20170727T220900
-    project_name: "{{ project_name }}"
     owner: www-data
     group: www-data
     dirname: "{{ postfix }}"
     _project_: "{{ project_name }}/{{ stage }}"
+    project_fullname: "{{ project_name }}-{{ stage }}"
     project_prefix: "/var/www/{{ _project_ }}"
     log_prefix: "/var/log/{{ _project_ }}"
     media_prefix: "/var/media/{{ _project_ }}"
     static_prefix: "/var/static/{{ _project_ }}"
     venv_prefix: "/var/lib/venv/{{ _project_ }}"
     local_settings_prefix: "/var/lib/local_settings/{{ _project_ }}"
-    supervisor_conf: "{{ supervisor_prefix }}/{{ project_name }}.{{ supervisor_ext }}"
+    supervisor_conf: "{{ supervisor_prefix }}/{{ project_fullname }}.{{ supervisor_ext }}"
     dest: "{{ project_prefix }}/{{ dirname }}"
     log_path: "{{ log_prefix }}/{{ postfix }}"
     media_path: "{{ media_prefix }}"
@@ -125,8 +125,9 @@
             mode: "+x"
         - name: "Stop running service"
           supervisorctl:
-            name: "{{ project_name }}"
-            state: stopped
+            name: "{{ project_fullname }}"
+            state: absent
+          ignore_errors: yes
         - name: "Run migrations"
           django_manage:
             command: migrate
@@ -147,7 +148,7 @@
             dest: "{{ supervisor_conf }}"
         - name: "Run django application"
           supervisorctl:
-            name: "{{ project_name }}"
+            name: "{{ project_fullname }}"
             state: restarted
       rescue:
         - name: "Cleanup venv"
