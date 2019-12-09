@@ -76,7 +76,7 @@
     local_settings_path: "{{ local_settings_prefix }}"
     venv_gunicorn: "{{ venv_path }}/bin/gunicorn"
   vars_files:
-    - secrets.yml
+    - vars.yml
   tasks:
     - block:
         - name: "Create dirs"
