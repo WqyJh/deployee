@@ -28,17 +28,12 @@ def git_rev(repo):
 @click.option('--postfix')
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-v', '--verbose', count=True)
-def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=None, debug=False, verbose=0):
+@click.option('--dry-run', is_flag=True)
+def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=None, debug=False, verbose=0, dry_run=False):
     project = os.path.abspath(project)
     name = name or os.path.basename(project)
     postfix = postfix or git_rev(project) or ''
     wsgi_app = wsgi_app or f'{name}.wsgi:application'
-
-    owd = os.getcwd()
-    wd = f'deployee-{uuid.uuid4()}'
-
-    shutil.copytree('ansible', wd)
-    os.chdir(wd)
 
     vars = {
         'project_name': name,
@@ -49,8 +44,18 @@ def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=N
         'postfix': postfix,
     }
 
+    if dry_run:
+        print(vars)
+        sys.exit(0)
+
     if debug:
         print(vars)
+
+    owd = os.getcwd()
+    wd = f'deployee-{uuid.uuid4()}'
+
+    shutil.copytree('ansible', wd)
+    os.chdir(wd)
 
     with open('vars.yml', 'w') as f:
         f.write(yaml.dump(vars))
