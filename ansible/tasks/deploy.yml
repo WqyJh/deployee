@@ -33,25 +33,19 @@
     name: "{{ project_fullname }}"
     state: absent
   ignore_errors: yes
-- name: "Run migrations"
-  django_manage:
-    command: migrate
-    app_path: "{{ dest }}"
-    virtualenv: "{{ venv_path }}"
-  become: yes
-  become_user: "{{ owner }}"
-- name: "Collect static files"
-  django_manage:
-    command: collectstatic
-    app_path: "{{ dest }}"
-    virtualenv: "{{ venv_path }}"
-  become: yes
-  become_user: "{{ owner }}"
+- include: django.yml
+  when: framework == "django"
+- set_fact:
+    script: "{{ venv_path }}/bin/{{ script }}"
+  when: script is defined
+- set_fact:
+    script: "{{ gunicorn_script }}"
+  when: script is not defined
 - name: "Generate supervisor config"
   template:
     src: template/supervisor.conf.j2
     dest: "{{ supervisor_conf }}"
-- name: "Run django application"
+- name: "Run service"
   supervisorctl:
     name: "{{ project_fullname }}"
     state: restarted

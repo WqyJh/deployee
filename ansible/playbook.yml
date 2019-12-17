@@ -76,7 +76,10 @@
     static_path: "{{ static_prefix }}"
     venv_path: "{{ venv_prefix }}/{{ postfix }}"
     local_settings_path: "{{ local_settings_prefix }}"
+    venv_python: "{{ venv_path }}/bin/python"
     venv_gunicorn: "{{ venv_path }}/bin/gunicorn"
+    gunicorn_script: "{{ venv_gunicorn }} -c {{ gunicorn_conf }} {{ wsgi_app }}"
+    framework: "django"
   vars_files:
     - vars.yml
   tasks:

@@ -29,7 +29,3 @@
     group: "{{ group }}"
     recurse: yes
   ignore_errors: yes
-- name: "Make manage.py executable"
-  file:
-    path: "{{ dest }}/manage.py"
-    mode: "+x"

@@ -23,13 +23,15 @@ def git_rev(repo):
 @click.argument('project')
 @click.argument('stage', type=click.Choice(['test', 'staging', 'production']))
 @click.option('-n', '--name')
+@click.option('--script')
+@click.option('--framework', default='django')
 @click.option('--gunicorn-conf', default='gunicorn.conf.py')
 @click.option('--wsgi-app')
 @click.option('--postfix')
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-v', '--verbose', count=True)
 @click.option('--dry-run', is_flag=True)
-def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=None, debug=False, verbose=0, dry_run=False):
+def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postfix, debug, verbose, dry_run):
     project = os.path.abspath(project)
     name = name or os.path.basename(project)
     postfix = postfix or git_rev(project) or ''
@@ -42,7 +44,11 @@ def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=N
         'gunicorn_conf': gunicorn_conf,
         'wsgi_app': wsgi_app,
         'postfix': postfix,
+        'framework': framework,
     }
+
+    if script:
+        vars['script'] = script
 
     if dry_run:
         print(vars)
