@@ -67,6 +67,8 @@
     static_prefix: "/var/static/{{ _project_ }}"
     venv_prefix: "/var/lib/venv/{{ _project_ }}"
     local_settings_prefix: "/var/lib/local_settings/{{ _project_ }}"
+    supervisor_prefix: "/etc/supervisord.d"
+    supervisor_ext: "ini"
     supervisor_conf: "{{ supervisor_prefix }}/{{ project_fullname }}.{{ supervisor_ext }}"
     dest: "{{ project_prefix }}/{{ dirname }}"
     log_path: "{{ log_prefix }}/{{ postfix }}"
@@ -79,6 +81,16 @@
     - vars.yml
   tasks:
     - block:
+        - name: "Check supervisor"
+          stat:
+            path: /etc/supervisor
+          register: result
+          ignore_errors: yes
+        - name: "Set supervisor facts"
+          set_fact:
+            supervisor_prefix: "/etc/supervisor/conf.d"
+            supervisor_ext: "conf"
+            supervisor_conf: "{{ supervisor_prefix }}/{{ project_fullname }}.{{ supervisor_ext }}"
         - name: "Create dirs"
           file:
             path: "{{ item }}"

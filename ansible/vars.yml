@@ -2,7 +2,6 @@
 project_name: dian_recruit
 stage: production
 project_src: /home/linux/Works/VSCodeProject/dian_recruit/Dian
-supervisord_conf: /etc/supervisord.conf
 supervisor_prefix: /etc/supervisord.d
 supervisor_ext: ini # conf
 gunicorn_conf: gunicorn.conf.py
