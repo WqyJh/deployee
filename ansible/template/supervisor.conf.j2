@@ -1,0 +1,3 @@
+[program:{{ project_fullname }}]
+command={{ venv_gunicorn }} -c {{ gunicorn_conf }} {{ wsgi_app }}
+directory={{ dest }}

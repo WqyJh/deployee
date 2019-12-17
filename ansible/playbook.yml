@@ -1,0 +1,88 @@
+# Directories structure of deployment
+# /var
+# ├── lib
+# │   ├── local_settings
+# │   │   └── project
+# │   │       ├── production
+# │   │       ├── staging
+# │   │       └── test
+# │   └── venv
+# │   │   └── project
+# │   │       ├── production
+# |   |       |   └── <hash>
+# │   │       ├── staging
+# |   |       |   └── <hash>
+# │   │       └── test
+# ├── log
+# │   └── project
+# │       ├── production
+# │       ├── staging
+# │       └── test
+# ├── media
+# │   └── project
+# │       ├── production
+# │       ├── staging
+# │       └── test
+# ├── static
+# │   └── project
+# │       ├── production
+# │       ├── staging
+# │       └── test
+# └── www
+# │   └── project
+# │       ├── production
+# |       |   └── <hash>
+# │       ├── staging
+# |       |   └── <hash>
+# │       └── test
+
+# The <hash> is designed for swapping.
+# Currently we only support one production environment,
+# but when deploying a new production, we have to stopped the
+# old first. We have to reduce the time between the old was stopped
+# and the new was started, when the service was available.
+# Therefore, we learn from the double buffering technology,
+# the currently production environment was deployed under
+# production/<hash1>/, and the new under production/<hash2>/.
+# After the dependencies of the new one was installed, stop the
+# old one and continue the following processes.
+# Since the dependencies resolving process is usually the slowest,
+# we reduce a great amount time of service unavaliability.
+
+---
+
+- name: "{{ project_name }} {{ stage }}"
+  hosts: web
+  remote_user: root
+  vars:
+    # postfix: "{{ ansible_date_time.iso8601_basic_short }}" # 20170727T220900
+    owner: www-data
+    group: www-data
+    dirname: "{{ postfix }}"
+    _project_: "{{ project_name }}/{{ stage }}"
+    project_fullname: "{{ project_name }}-{{ stage }}"
+    project_prefix: "/var/www/{{ _project_ }}"
+    log_prefix: "/var/log/{{ _project_ }}"
+    media_prefix: "/var/media/{{ _project_ }}"
+    static_prefix: "/var/static/{{ _project_ }}"
+    venv_prefix: "/var/lib/venv/{{ _project_ }}"
+    local_settings_prefix: "/var/lib/local_settings/{{ _project_ }}"
+    supervisor_prefix: "/etc/supervisord.d"
+    supervisor_ext: "ini"
+    supervisor_conf: "{{ supervisor_prefix }}/{{ project_fullname }}.{{ supervisor_ext }}"
+    dest: "{{ project_prefix }}/{{ dirname }}"
+    log_path: "{{ log_prefix }}/{{ postfix }}"
+    media_path: "{{ media_prefix }}"
+    static_path: "{{ static_prefix }}"
+    venv_path: "{{ venv_prefix }}/{{ postfix }}"
+    local_settings_path: "{{ local_settings_prefix }}"
+    venv_gunicorn: "{{ venv_path }}/bin/gunicorn"
+  vars_files:
+    - vars.yml
+  tasks:
+    - include: tasks/install.yml
+    - include: tasks/test.yml
+      when: stage == 'test'
+    - include: tasks/deploy.yml
+      when: stage != 'test'
+    - include: tasks/cleanup.yml

@@ -1,0 +1,9 @@
+---
+project_name: dian_recruit
+stage: production
+project_src: /home/linux/Works/VSCodeProject/dian_recruit/Dian
+supervisor_prefix: /etc/supervisord.d
+supervisor_ext: ini # conf
+gunicorn_conf: gunicorn.conf.py
+wsgi_app: Dian.wsgi:application
+postfix: f606bc8
