@@ -1,4 +1,5 @@
 import os
+import sys
 import uuid
 import yaml
 import click
@@ -25,7 +26,9 @@ def git_rev(repo):
 @click.option('--gunicorn-conf', default='gunicorn.conf.py')
 @click.option('--wsgi-app')
 @click.option('--postfix')
-def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=None):
+@click.option('-d', '--debug', is_flag=True)
+@click.option('-v', '--verbose', count=True)
+def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=None, debug=False, verbose=0):
     project = os.path.abspath(project)
     name = name or os.path.basename(project)
     postfix = postfix or git_rev(project) or ''
@@ -46,15 +49,22 @@ def main(project, stage, name=None, gunicorn_conf=None, wsgi_app=None, postfix=N
         'postfix': postfix,
     }
 
-    print(vars)
+    if debug:
+        print(vars)
 
     with open('vars.yml', 'w') as f:
         f.write(yaml.dump(vars))
 
-    subprocess.call(['ansible-playbook', 'playbook.yml'])
+    commands = ['ansible-playbook', 'playbook.yml']
+    if verbose:
+        commands.append('-' + verbose * 'v')
+
+    ret = subprocess.call(commands)
 
     os.chdir(owd)
     shutil.rmtree(wd)
+
+    sys.exit(ret)
 
 
 if __name__ == '__main__':
