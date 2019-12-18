@@ -2,4 +2,4 @@
 
 import runpy
 
-runpy.run_module('deployee.main', run_name='__main__')
+runpy.run_module('deployee.deployee', run_name='__main__')
