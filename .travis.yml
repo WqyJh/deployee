@@ -1,0 +1,17 @@
+language: python
+python:
+- '3.6'
+install:
+- pip install pipenv
+- pipenv install --dev
+script:
+- python setup.py test
+deploy:
+  provider: pypi
+  user: wqy
+  on:
+    tags: true
+  distributions: sdist bdist_wheel
+  skip_existing: true
+  password:
+    secure: Vg0ppacyDsh/taj3j5vu+SkLI4euzignV68viqKnLzS+XlS0078fImb930c3EwI4S5bbFOcJiD9v8+eG+17tRG1ZRioX8O+/E/c0lW5n+A1YTUQCxNSlrZsipy/QrK02W5oFaV4OFBtMjlfz3/CGLSO9ykGIFWffT1wOoi4sdQFFz6j4ffTl+SC7HPd1pMhLh5NA3KKFC2PNUMwg5kzZE6aSfanIlqRIaFMlXaj66LTLD1G2cn3uQtTWNhIMsZq+BMi4oo97qqhksX4xNNWK2xpdstpSqpQy/uSTjJmwpixW/JlaPP5nBNzSKtUNjbrW+88EleE+UIgWTsIH1xORK0pQro5mo/M0w9qmIoLIOCnND61PLjydFfnsSETEmjG3SmNgpwrMoAxo3devRG9X47bnMMUa0bX3usNGoP/CiTZUII1dnjNACOxirNlkQfoFL/fm53FYp0zVEO1eaippXxOuLmo3UgROoF7Dx/yRHMtNZEpCpJURKrNl3g/R94bZF8d9tesGTTxm7h7Jig9MGllw/GcXH+MsZ1aC87DnvoHxkI/Vhb/K78dfMH3m7mIkFfIfiEJiGpCTO8wYmms6wyV21rpbCSheTNVnSXRjRlrbuvym5Eht87/md5M/Xg7MXXypzW7fniB5+kiVICBk8LkJZCH6cuz2/aSueBsmE6g=
