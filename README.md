@@ -1,5 +1,8 @@
 # deployee
 
+[![Build Status](https://travis-ci.org/WqyJh/deployee.svg?branch=master)](https://travis-ci.org/WqyJh/deployee)
+[![license](https://img.shields.io/badge/LICENCE-GPLv3-brightgreen.svg)](https://raw.githubusercontent.com/WqyJh/deployee/master/LICENSE)
+
 Server requirements:
 
 - rsync
