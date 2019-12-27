@@ -17,7 +17,7 @@ Server requirements:
 Deploy an django application.
 
 ```bash
-./run.py /path/to/project production
+deployee /path/to/project production
 ```
 
 Deploy a flask application.

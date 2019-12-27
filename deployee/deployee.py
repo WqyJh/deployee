@@ -5,6 +5,7 @@ import yaml
 import click
 import shutil
 import subprocess
+import pkg_resources
 
 from . import __version__
 
@@ -20,21 +21,27 @@ def git_rev(repo):
 
 
 @click.command()
-@click.argument('project')
+@click.version_option(__version__)
+@click.argument('project') # Project path which should better be a git repo
 @click.argument('stage', type=click.Choice(['test', 'staging', 'production']))
-@click.option('-n', '--name')
-@click.option('--script')
-@click.option('--framework', default='django')
-@click.option('--gunicorn-conf', default='gunicorn.conf.py')
-@click.option('--wsgi-app')
-@click.option('--postfix')
+@click.option('-n', '--name', help='Project name. Default as the <project>.')
+@click.option('--script', help='Custom test/run script. Default as "python manage.py test" or "gunicorn -c <gunicorn_conf> <wsgi_app>".')
+@click.option('--framework', default='django', help='Run the framework specified tasks. For django is the migrations and static collection.')
+@click.option('--gunicorn-conf', default='gunicorn.conf.py', help='Config filename for gunicorn relative to the project root path.')
+@click.option('--wsgi-app', help='Gunicorn argument of wsgi application. Default as <project>.wsgi:application.')
+@click.option('--postfix', help='Postfix which help avoiding conflict between the old code path and the new code path. default: value of `git rev-parse --short` if the project path is a git repo else "default".')
+@click.option('--inventory', help='Ansible inventory file.')
 @click.option('-d', '--debug', is_flag=True)
-@click.option('-v', '--verbose', count=True)
-@click.option('--dry-run', is_flag=True)
-def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postfix, debug, verbose, dry_run):
+@click.option('-v', '--verbose', count=True, help='Verbosity for ansible-playbook.')
+@click.option('--dry-run', is_flag=True, help='Print some arguments without real tasks running.')
+def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postfix, inventory, debug, verbose, dry_run):
+    if inventory and not os.path.isfile(inventory):
+        print(f'file "{inventory}" does not exist')
+        sys.exit(1)
+
     project = os.path.abspath(project)
     name = name or os.path.basename(project)
-    postfix = postfix or git_rev(project) or ''
+    postfix = postfix or git_rev(project) or 'default'
     wsgi_app = wsgi_app or f'{name}.wsgi:application'
 
     vars = {
@@ -60,7 +67,12 @@ def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postf
     owd = os.getcwd()
     wd = f'deployee-{uuid.uuid4()}'
 
-    shutil.copytree('ansible', wd)
+    src = pkg_resources.resource_filename('deployee', 'ansible')
+    shutil.copytree(src, wd)
+
+    if inventory:
+        shutil.copy(inventory, wd)
+
     os.chdir(wd)
 
     with open('vars.yml', 'w') as f:
