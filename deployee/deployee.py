@@ -5,6 +5,7 @@ import yaml
 import click
 import shutil
 import subprocess
+import pkg_resources
 
 from . import __version__
 
@@ -20,6 +21,7 @@ def git_rev(repo):
 
 
 @click.command()
+@click.version_option(__version__)
 @click.argument('project')
 @click.argument('stage', type=click.Choice(['test', 'staging', 'production']))
 @click.option('-n', '--name')
@@ -60,7 +62,8 @@ def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postf
     owd = os.getcwd()
     wd = f'deployee-{uuid.uuid4()}'
 
-    shutil.copytree('ansible', wd)
+    src = pkg_resources.resource_filename('deployee', 'ansible')
+    shutil.copytree(src, wd)
     os.chdir(wd)
 
     with open('vars.yml', 'w') as f:

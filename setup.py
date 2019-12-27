@@ -12,7 +12,7 @@ test_requirements = convert_deps_to_pip(pfile['dev-packages'], r=False)
 
 entry_points = {
     'console_scripts': [
-        'deployee = deployee.main:main'
+        'deployee = deployee.deployee:main'
     ]
 }
 
