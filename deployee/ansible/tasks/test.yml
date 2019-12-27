@@ -1,0 +1,14 @@
+- name: "Run tests"
+  django_manage:
+    command: test
+    app_path: "{{ dest }}"
+    virtualenv: "{{ venv_path }}"
+  become: yes
+  become_user: "{{ owner }}"
+  register: result
+  when:
+    - script is not defined
+    - framework == "django"
+- name: "Run tests"
+  shell: "{{ venv_path }}/bin/{{ script }}"
+  when: script is defined

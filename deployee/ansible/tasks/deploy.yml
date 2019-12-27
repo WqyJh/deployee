@@ -1,0 +1,51 @@
+- name: "Check supervisor"
+  stat:
+    path: /etc/supervisor
+  register: result
+  ignore_errors: yes
+- name: "Set supervisor facts"
+  set_fact:
+    supervisor_prefix: "/etc/supervisor/conf.d"
+    supervisor_ext: "conf"
+    supervisor_conf: "{{ supervisor_prefix }}/{{ project_fullname }}.{{ supervisor_ext }}"
+- name: "Create dirs"
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  loop:
+    - "{{ log_path }}"
+    - "{{ media_path }}"
+    - "{{ static_path }}"
+- name: "Change files' attributes"
+  file:
+    path: "{{ item }}"
+    owner: "{{ owner }}"
+    group: "{{ group }}"
+    recurse: yes
+  loop:
+    - "{{ log_path }}"
+    - "{{ media_path }}"
+    - "{{ static_path }}"
+  ignore_errors: yes
+- name: "Stop running service"
+  supervisorctl:
+    name: "{{ project_fullname }}"
+    state: absent
+  ignore_errors: yes
+- include: django.yml
+  when: framework == "django"
+- set_fact:
+    script: "{{ venv_path }}/bin/{{ script }}"
+  when: script is defined
+- set_fact:
+    script: "{{ gunicorn_script }}"
+  when: script is not defined
+- name: "Generate supervisor config"
+  template:
+    src: template/supervisor.conf.j2
+    dest: "{{ supervisor_conf }}"
+- name: "Run service"
+  supervisorctl:
+    name: "{{ project_fullname }}"
+    state: restarted

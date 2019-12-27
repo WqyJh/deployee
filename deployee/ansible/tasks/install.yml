@@ -1,0 +1,31 @@
+- name: "Create code dir"
+  file:
+    path: "{{ dest }}"
+    state: directory
+    recurse: yes
+- name: "Copy code"
+  synchronize:
+    src: "{{ project_src }}/"
+    dest: "{{ dest }}"
+    archive: true
+    delete: true
+    rsync_opts:
+      - "--exclude=.git/"
+- name: "Retrive local settings"
+  synchronize:
+    src: "{{ local_settings_path }}/"
+    dest: "{{ dest }}"
+    archive: true
+    delete: false
+- name: "Install python dependencies"
+  pip:
+    virtualenv: "{{ venv_path }}"
+    virtualenv_python: python3
+    requirements: "{{ dest }}/requirements.txt"
+- name: "Change files' attributes"
+  file:
+    path: "{{ dest }}"
+    owner: "{{ owner }}"
+    group: "{{ group }}"
+    recurse: yes
+  ignore_errors: yes

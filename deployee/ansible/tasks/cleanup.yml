@@ -1,0 +1,4 @@
+- name: "Cleanup old code"
+  shell: "find {{ project_prefix }} -mindepth 1 -maxdepth 1 ! -name '{{ dirname }}' | xargs rm -rf"
+- name: "Cleanup old venv"
+  shell: "find {{ venv_prefix }} -mindepth 1 -maxdepth 1 ! -name '{{ dirname }}' | xargs rm -rf"
