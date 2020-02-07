@@ -23,5 +23,46 @@ deployee /path/to/project production
 Deploy a flask application.
 
 ```bash
-./run.py /path/to/project production --framework flask --script python -m app
+./run.py /path/to/project production --framework flask --script "python -m app"
+```
+
+## Project Structure
+
+```bash
+/var
+├── lib
+│   ├── local_settings
+│   │   └── project
+│   │       ├── production
+│   │       ├── staging
+│   │       └── test
+│   └── venv
+│   │   └── project
+│   │       ├── production
+|   |       |   └── <hash>
+│   │       ├── staging
+|   |       |   └── <hash>
+│   │       └── test
+├── log
+│   └── project
+│       ├── production
+│       ├── staging
+│       └── test
+├── media
+│   └── project
+│       ├── production
+│       ├── staging
+│       └── test
+├── static
+│   └── project
+│       ├── production
+│       ├── staging
+│       └── test
+└── www
+│   └── project
+│       ├── production
+|       |   └── <hash>
+│       ├── staging
+|       |   └── <hash>
+│       └── test
 ```
