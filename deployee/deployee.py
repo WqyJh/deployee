@@ -63,11 +63,11 @@ def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postf
         print(vars)
         sys.exit(0)
 
-    if debug:
-        print(vars)
-
     owd = os.getcwd()
-    wd = f'deployee-{uuid.uuid4()}'
+    wd = f'/tmp/deployee-{uuid.uuid4()}'
+    if debug:
+        print(f'working directory: {wd}')
+        print(vars)
 
     src = pkg_resources.resource_filename('deployee', 'ansible')
     shutil.copytree(src, wd)
