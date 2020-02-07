@@ -1,6 +1,6 @@
 - name: "Run tests"
   django_manage:
-    command: test
+    command: "{{ django_test_command }}"
     app_path: "{{ dest }}"
     virtualenv: "{{ venv_path }}"
   become: yes

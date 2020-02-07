@@ -31,10 +31,11 @@ def git_rev(repo):
 @click.option('--wsgi-app', help='Gunicorn argument of wsgi application. Default as <project>.wsgi:application.')
 @click.option('--postfix', help='Postfix which help avoiding conflict between the old code path and the new code path. default: value of `git rev-parse --short` if the project path is a git repo else "default".')
 @click.option('--inventory', help='Ansible inventory file.')
+@click.option('--parallel', is_flag=True, default=False, help='Run tests in parallel, only work for django test.')
 @click.option('-d', '--debug', is_flag=True)
 @click.option('-v', '--verbose', count=True, help='Verbosity for ansible-playbook.')
 @click.option('--dry-run', is_flag=True, help='Print some arguments without real tasks running.')
-def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postfix, inventory, debug, verbose, dry_run):
+def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postfix, inventory, parallel, debug, verbose, dry_run):
     if inventory and not os.path.isfile(inventory):
         print(f'file "{inventory}" does not exist')
         sys.exit(1)
@@ -52,6 +53,7 @@ def main(project, stage, name, script, framework, gunicorn_conf, wsgi_app, postf
         'wsgi_app': wsgi_app,
         'postfix': postfix,
         'framework': framework,
+        'django_test_command': 'test --parallel' if parallel else 'test',
     }
 
     if script:
