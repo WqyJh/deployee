@@ -1,6 +1,13 @@
 # Changelog
 
 
+## 0.14.0
+#### New Features
+
+* create working directory under /tmp
+* add parallel option for django test
+
+
 ## 0.12.0
 #### New Features
 
